@@ -1,0 +1,273 @@
+{
+  "name": "AI agent for extract & transform AI top new's readable data using RSS read node and send whatsapp",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "70847ca1-2c85-4581-bd8c-b41f28d96a7f",
+      "name": "When clicking ‘Execute workflow’",
+      "type": "n8n-nodes-base.manualTrigger",
+      "position": [
+        0,
+        0
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "db295d76-a16a-4d86-96db-20701d55556e",
+      "name": "Loop Over Items",
+      "type": "n8n-nodes-base.splitInBatches",
+      "position": [
+        672,
+        0
+      ],
+      "typeVersion": 3
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "52ddafbb-536f-45d6-9697-7ddf5b9b3869",
+              "name": "Count",
+              "type": "string",
+              "value": "1"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "b4d06545-9fa3-4f06-ab41-032c09cdd654",
+      "name": "Set the Input Fields",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        208,
+        0
+      ],
+      "typeVersion": 3.4
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Extract a human readable content. \n\nHere's the context :\n\n{{ $json.data }}",
+        "batching": {}
+      },
+      "id": "031f24ae-fd4a-4860-911f-540ac870f2d6",
+      "name": "Extract Human Readable Data",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "position": [
+        1360,
+        16
+      ],
+      "retryOnFail": true,
+      "typeVersion": 1.7
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "267f21f5-d483-4e74-9773-b1d8a02dd984",
+              "name": "author",
+              "type": "string",
+              "value": "={{ $json.author }}"
+            },
+            {
+              "id": "667a3ffb-a07c-4f66-b253-a7c64b2aa8e0",
+              "name": "url",
+              "type": "string",
+              "value": "={{ $json.link }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "f58e192f-4bdb-472c-8492-ded0a30bbd2d",
+      "name": "Set the url, author",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        880,
+        16
+      ],
+      "typeVersion": 3.4
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.url }}",
+        "options": {}
+      },
+      "id": "0766e6e5-b834-4acf-a66f-0ac1516af5d8",
+      "name": "Create an HTTP Request",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        1104,
+        16
+      ],
+      "retryOnFail": true,
+      "typeVersion": 4.2,
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "phoneNumberId": "1074379732428924",
+        "recipientPhoneNumber": "+358413296191",
+        "textBody": "={{ $json.text }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1.1,
+      "position": [
+        1712,
+        16
+      ],
+      "id": "7718c565-9416-4ba9-99ac-5428af8df04c",
+      "name": "Send message",
+      "webhookId": "1653261b-3558-4a03-931c-b6223462e5dc",
+      "credentials": {
+        "whatsAppApi": {
+          "id": "27PnVdpj1uu87Au9",
+          "name": "WhatsApp account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        1360,
+        224
+      ],
+      "id": "68135bc2-e9b4-4b86-b716-d701e85dd02d",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "DPiMLzbKu1NsVWLn",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "https://techcrunch.com/tag/artificial-intelligence/feed",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.2,
+      "position": [
+        416,
+        0
+      ],
+      "id": "592ff24a-e71c-45e0-a9e4-0228cb3fc85f",
+      "name": "RSS Read"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Set the url, author",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set the url, author": {
+      "main": [
+        [
+          {
+            "node": "Create an HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set the Input Fields": {
+      "main": [
+        [
+          {
+            "node": "RSS Read",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create an HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Extract Human Readable Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Human Readable Data": {
+      "main": [
+        [
+          {
+            "node": "Send message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Set the Input Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Extract Human Readable Data",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RSS Read": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "b5a9460c-6826-4b19-8a10-18d0f9b8b43f",
+  "meta": {
+    "instanceId": "e1c3bb77d6e42e4f4974e39ad9acac972a2a2d5c3bfb8f8a6f735e9311391a18"
+  },
+  "id": "yeBmBlL2GnZLasc7",
+  "tags": []
+}
